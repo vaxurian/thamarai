@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thamarai — Premium Spatial Dining Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght=400;600;700&family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { serif: ['Cinzel', 'serif'], sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        gold: { DEFAULT: '#D4AF37', light: '#F3E5AB', dark: '#AA7C11' },
+                        forest: { 950: '#0F2013', 900: '#1E3A24', 800: '#2A5233' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        body, html { overflow: hidden; height: 100%; position: relative; background-color: #0F2013; -webkit-tap-highlight-color: transparent; }
+        
+        .perspective-container {
+            perspective: 1400px;
+            perspective-origin: center center;
+        }
+        
+        .spatial-card {
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, filter 0.5s ease;
+            backface-visibility: hidden;
+        }
+
+        .glass-luxury {
+            background: linear-gradient(135deg, rgba(30, 58, 36, 0.8) 0%, rgba(15, 32, 19, 0.95) 100%);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .glow-gold { box-shadow: 0 0 30px rgba(212, 175, 55, 0.15); }
+        .glow-active { box-shadow: 0 0 40px rgba(212, 175, 55, 0.35); border-color: rgba(212, 175, 55, 0.7) !important; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-stone-100 font-sans antialiased select-none" x-data="combinedMenuApp()">
+
+
+    <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-gold/10 rounded-full blur-[120px] animate-pulse"></div>
+        <div class="absolute bottom-10 -right-40 w-96 h-96 bg-forest-800/20 rounded-full blur-[150px]"></div>
+    </div>
+
+
+    <div x-show="showQrScreen" class="absolute inset-0 bg-forest-950 z-50 flex flex-col items-center justify-center p-6 overflow-y-auto">
+        <div class="max-w-sm w-full text-center space-y-6 my-auto py-4">
+            <div class="space-y-2">
+                <h1 class="font-serif text-3xl tracking-[0.25em] text-gold uppercase">THAMARAI</h1>
+                <p class="text-xs text-gold/60 tracking-widest font-serif">|| थमराई • ||</p>
+                <div class="h-[1px] w-24 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto"></div>
+            </div>
+            
+            <div class="glass-luxury p-6 rounded-[2.5rem] border border-gold/30 glow-gold space-y-4">
+                <p class="text-[10px] tracking-widest text-stone-400 uppercase font-semibold">Scan Table To Shared Hub</p>
+                <div class="flex justify-center">
+                    <div id="qrcode" class="p-2 bg-white rounded-2xl shadow-inner transition-transform duration-500 hover:scale-105"></div>
+                </div>
+                
+                <div class="pt-2 border-t border-gold/10 text-stone-300 text-xs space-y-1.5 font-light">
+                    <p class="flex items-center justify-center gap-1.5">
+                        <span class="text-gold">📍</span> Gomti Nagar, Lucknow
+                    </p>
+                    <p class="flex items-center justify-center gap-1.5">
+                        <span class="text-gold">🕒</span> Open Daily: 08:00 AM - 11:00 PM
+                    </p>
+                </div>
+                <p class="text-[11px] text-stone-400 italic font-light">"All living beings subsist on food"</p>
+            </div>
+
+
+            <button @click="unlockSpatialMenu()" class="w-full bg-gradient-to-r from-gold-dark via-gold to-gold-light text-forest-950 py-4 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-2xl transition-all duration-300 transform active:scale-95">
+                Initialize Spatial Matrix
+            </button>
+        </div>
+    </div>
+
+
+    <div x-show="!showQrScreen" x-cloak class="absolute inset-0 z-10 flex flex-col justify-between p-4 pb-20 md:p-6 opacity-0 transition-opacity duration-1000" x-init="setTimeout(() => $el.classList.add('opacity-100'), 100)">
+        
+        <header class="text-center pt-1 pointer-events-auto space-y-1 shrink-0">
+            <div class="inline-flex items-center gap-2 border border-gold/20 px-3 py-0.5 rounded-full text-[9px] tracking-[0.15em] text-gold uppercase bg-forest-900/50">
+                <span>Lucknow</span>
+                <span class="w-1 h-1 rounded-full bg-gold/50"></span>
+                <span>08:00 AM - 11:00 PM</span>
+            </div>
+            <h2 class="font-serif text-2xl tracking-[0.25em] text-gold uppercase">THAMARAI</h2>
+            
+            <div class="flex justify-center gap-1.5 pt-2 max-w-xs mx-auto">
+                <template x-for="(cat, index) in filteredCategories()">
+                    <div class="h-1 rounded-full transition-all duration-500" :class="activeIndex === index ? 'w-6 bg-gold' : 'w-1.5 bg-stone-700/60'"></div>
+                </template>
+            </div>
+        </header>
+
+
+        <div class="w-full max-w-[350px] mx-auto mt-3 grid grid-cols-3 gap-1.5 z-30 relative shrink-0">
+            <button @click="toggleSpecialFilter()" :class="onlySpecials ? 'border-gold bg-gold text-forest-950 font-semibold glow-gold' : 'border-gold/20 text-gold bg-forest-900/40'" class="border px-1 py-2 rounded-xl text-[10px] tracking-wider uppercase transition-all duration-300 flex flex-col items-center justify-center">
+                <span>✨ Specials</span>
+            </button>
+            <button @click="toggleJainFilter()" :class="onlyJain ? 'border-emerald-500 bg-emerald-600 text-white font-semibold' : 'border-emerald-500/20 text-emerald-400 bg-forest-900/40'" class="border px-1 py-2 rounded-xl text-[10px] tracking-wider uppercase transition-all duration-300 flex flex-col items-center justify-center">
+                <span>🕉️ Jain Menu</span>
+            </button>
+            <button @click="triggerMagicCurator()" class="border border-gold/40 bg-gradient-to-br from-forest-900 to-forest-800 text-gold px-1 py-2 rounded-xl text-[10px] tracking-wider uppercase transition-all duration-300 flex flex-col items-center justify-center animate-pulse">
+                <span>🎲 Surprise Combo</span>
+            </button>
+        </div>
+
+
+        <main class="relative w-full h-[55vh] min-h-[380px] flex items-center justify-center perspective-container my-auto">
+            <template x-for="(cat, index) in filteredCategories()" :key="cat">
+                <div x-show="index >= activeIndex && index <= activeIndex + 2"
+                     class="absolute w-full max-w-[350px] h-[98%] spatial-card glass-luxury rounded-[2.5rem] p-4 flex flex-col justify-between"
+                     :style="getCardStyle(index)"
+                     @touchstart="handleTouchStart($event)"
+                     @touchend="handleTouchEnd($event, index)">
+                    
+                    <div class="space-y-1.5 shrink-0">
+                        <div class="flex justify-between items-center border-b border-gold/10 pb-1.5">
+                            <span class="font-serif text-[10px] tracking-widest text-gold/60 font-semibold" x-text="'DECK 0' + (index + 1) + ' / 0' + filteredCategories().length"></span>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.6)]"></span>
+                        </div>
+                        <h3 class="font-serif text-lg tracking-wider text-gold uppercase truncate" x-text="cat"></h3>
+                    </div>
+
+
+                    <div class="my-2.5 flex-1 overflow-y-auto no-scrollbar space-y-2 pr-0.5">
+                        <template x-for="item in menuData[cat]" :key="item.name">
+                            <div x-show="shouldShowItem(item)" @click="inspectItem(item)" 
+                                 :class="item.isSpecial ? 'border-gold/40 bg-gold/5' : 'border-white/[0.05] bg-white/[0.02]'"
+                                 class="p-2.5 rounded-xl border hover:border-gold/40 active:bg-gold/5 transition-all duration-300 flex justify-between items-center cursor-pointer group">
+                                <div class="space-y-0.5 max-w-[74%]">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="w-1.5 h-1.5 rounded-full" :class="item.spicy ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                                        <h4 class="text-xs font-medium tracking-wide text-stone-200 group-hover:text-gold transition-colors truncate" x-text="item.name"></h4>
+                                        <template x-if="item.spicy">
+                                            <span class="text-[9px]">🌶️</span>
+                                        </template>
+                                    </div>
+                                    <p x-show="item.description" class="text-[10px] text-stone-400 font-light truncate" x-text="item.description"></p>
+                                </div>
+                                <span class="font-serif text-[11px] font-semibold text-gold bg-gold/10 px-2 py-0.5 rounded-lg border border-gold/20 shrink-0" x-text="'₹' + item.price"></span>
+                            </div>
+                        </template>
+                
+                        <div x-show="menuData[cat].filter(i => shouldShowItem(i)).length === 0" class="h-full flex flex-col items-center justify-center text-center p-4">
+                            <p class="text-xs text-stone-500 italic">No selection match within current pipeline filters.</p>
+                        </div>
+                    </div>
+
+
+                    <div class="text-center pt-1.5 border-t border-white/[0.05] shrink-0">
+                        <p class="text-[9px] tracking-widest text-stone-500 uppercase">Swipe Card Frame or Tap Nav Deck</p>
+                    </div>
+
+
+                </div>
+            </template>
+        </main>
+
+
+        <footer class="w-full max-w-[350px] mx-auto pb-2 flex gap-3 z-30 relative shrink-0">
+            <button @click="previousCard()" :disabled="activeIndex === 0" :class="activeIndex === 0 ? 'opacity-30' : 'opacity-100'" class="flex-1 bg-white/[0.03] border border-white/10 rounded-2xl py-3 text-xs uppercase tracking-widest font-semibold transition active:bg-white/5 text-stone-300">
+                Previous
+            </button>
+            <button @click="nextCard()" :disabled="activeIndex >= filteredCategories().length - 1" :class="activeIndex >= filteredCategories().length - 1 ? 'opacity-30' : 'opacity-100'" class="flex-1 bg-gradient-to-r from-gold-dark to-gold text-forest-950 rounded-2xl py-3 text-xs uppercase tracking-widest font-bold transition shadow-xl">
+                Next Deck
+            </button>
+        </footer>
+
+
+        <div class="fixed bottom-4 right-4 z-40" x-data="{ openHub: false }">
+            <button @click="openHub = !openHub; playTickSound(250, 0.05)" class="w-12 h-12 bg-gradient-to-tr from-gold-dark to-gold text-forest-950 rounded-full flex items-center justify-center shadow-2xl transition-transform duration-300 hover:scale-110 relative z-50">
+                <span class="text-base" x-text="openHub ? '✕' : '🛎️'"></span>
+            </button>
+            <div x-show="openHub" x-transition class="absolute bottom-14 right-0 w-48 p-1.5 glass-luxury rounded-2xl border border-gold/30 space-y-1 shadow-2xl text-xs">
+                <button @click="alert('A dining assistant has been dispatched to your designated table location.'); openHub = false" class="w-full text-left px-3 py-2 hover:bg-gold/10 rounded-xl text-stone-200 hover:text-gold transition flex items-center gap-2">
+                    <span>💁‍♂️</span> Call Server
+                </button>
+                <button @click="alert('Water request transmitted directly to floor attendants.'); openHub = false" class="w-full text-left px-3 py-2 hover:bg-gold/10 rounded-xl text-stone-200 hover:text-gold transition flex items-center gap-2">
+                    <span>💧</span> Request Water
+                </button>
+                <a href="tel:+915220000000" class="w-full text-left px-3 py-2 hover:bg-gold/10 rounded-xl text-stone-200 hover:text-gold transition flex items-center gap-2 block">
+                    <span>📞</span> Phone Concierge
+                </a>
+            </div>
+        </div>
+
+
+        <div class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center backdrop-blur-xl" 
+             x-show="showXray" x-cloak x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-y-full" x-transition:leave="transition ease-in duration-300" x-transition:leave-end="opacity-0 translate-y-full">
+            <div class="w-full p-6 space-y-4 max-w-md relative pb-8 flex flex-col justify-end">
+                <button @click="showXray = false; playTickSound(150, 0.05)" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-stone-400 text-xs z-50">✕</button>
+                
+                <div class="w-full aspect-[16/9] rounded-[2rem] border border-gold/40 overflow-hidden shadow-2xl glass-luxury shrink-0">
+                    <img :src="selectedItem.name ? (selectedItem.name.toLowerCase().includes('dosai') || selectedItem.name.toLowerCase().includes('dosa') ? 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=600&q=80' : (selectedItem.name.toLowerCase().includes('idli') ? 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80' : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80')) : ''" 
+                         alt="Dish Illustration" 
+                         class="w-full h-full object-cover brightness-90">
+                </div>
+
+                <div class="w-full glass-luxury rounded-[3rem] p-6 space-y-4 border border-gold/40 relative">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block ring-4 ring-emerald-500/20"></span>
+                            <template x-if="selectedItem.isSpecial">
+                                <span class="bg-gold/20 text-gold text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-widest">Chef's Signature</span>
+                            </template>
+                            <template x-if="selectedItem.isJain">
+                                <span class="bg-emerald-500/10 text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-widest">Jain Available</span>
+                            </template>
+                        </div>
+                        <h3 class="font-serif text-xl tracking-wide text-gold uppercase" x-text="selectedItem.name"></h3>
+                        <p class="font-serif text-sm text-stone-300" x-text="'Standard Pricing • ₹' + selectedItem.price"></p>
+                    </div>
+
+
+                    <div class="h-[1px] w-full bg-gold/10"></div>
+
+
+                    <div class="space-y-1.5">
+                        <h4 class="text-[9px] uppercase tracking-widest text-gold font-bold">Gastronomy Breakdown</h4>
+                        <p class="text-xs text-stone-300 leading-relaxed font-light" x-text="selectedItem.description || 'Artisanal culinary blend configured fresh on authentic multi-generational premium ranges.'"></p>
+                    </div>
+
+
+                    <div class="grid grid-cols-2 gap-2.5 pt-1">
+                        <div class="bg-white/[0.02] border border-white/[0.05] p-2 rounded-xl text-center">
+                            <span class="block text-stone-500 text-[8px] uppercase tracking-wider mb-0.5">Preparation Base</span>
+                            <span class="text-[11px] text-stone-300 font-medium" x-text="selectedItem.spicy ? 'Spicy & Roasted' : 'Fresh Pure Ingredients'"></span>
+                        </div>
+                        <div class="bg-white/[0.02] border border-white/[0.05] p-2 rounded-xl text-center">
+                            <span class="block text-stone-500 text-[8px] uppercase tracking-wider mb-0.5">Service Profile</span>
+                            <span class="text-[11px] text-stone-300 font-medium">Served Freshly Hot</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-md" x-show="showCuratorModal" x-cloak x-transition>
+            <div class="glass-luxury p-5 rounded-3xl w-full max-w-sm text-center border border-gold/40 relative glow-active space-y-4">
+                <div class="space-y-0.5">
+                    <span class="text-xl animate-bounce inline-block">✨</span>
+                    <h3 class="font-serif text-base tracking-wide text-gold uppercase">Chef's Matrix Selection</h3>
+                    <p class="text-[11px] text-stone-400 font-light">Custom gastronomical profiles built for your table.</p>
+                </div>
+                
+                <div class="bg-forest-950/80 p-3 rounded-2xl border border-gold/10 space-y-2 text-left">
+                    <template x-for="rec in matchingRecommendation">
+                        <div class="flex justify-between items-center text-xs border-b border-gold/5 pb-1.5 last:border-none last:pb-0">
+                            <div>
+                                <p class="font-medium text-stone-200 text-xs" x-text="rec.name"></p>
+                                <p class="text-[9px] text-gold/60 uppercase tracking-widest font-serif" x-text="rec.category"></p>
+                            </div>
+                            <p class="font-serif text-gold font-semibold text-xs" x-text="'₹' + rec.price"></p>
+                        </div>
+                    </template>
+                </div>
+
+
+                <div class="flex gap-2.5">
+                    <button @click="triggerMagicCurator()" class="flex-1 border border-gold/30 text-stone-300 py-2 rounded-xl text-xs uppercase tracking-wider font-medium hover:bg-forest-900 transition">Reroll Build</button>
+                    <button @click="showCuratorModal = false" class="flex-1 bg-gold text-forest-950 py-2 rounded-xl text-xs uppercase tracking-widest font-bold transition hover:brightness-110">Accept Deck</button>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <script>
+        function combinedMenuApp() {
+            return {
+                showQrScreen: true,
+                activeIndex: 0,
+                onlySpecials: false,
+                onlyJain: false,
+                showXray: false,
+                showCuratorModal: false,
+                selectedItem: {},
+                matchingRecommendation: [],
+                touchStartX: 0,
+                touchStartY: 0,
+                audioCtx: null,
+
+
+                categories: [
+                    "Thamarai Special Dosai", 
+                    "Classic Dosai", 
+                    "Rava Dosai", 
+                    "Thindi Breakfast", 
+                    "Saadham Rice Specialties", 
+                    "Meals & Combo Thaals",
+                    "Soups & Starters",
+                    "North Indian Mains",
+                    "Indian Flatbreads & Sides",
+                    "Chinese Appetizers",
+                    "Chinese Noodles & Rice",
+                    "Tea, Coffee & Shakes",
+                    "Ice Teas, Mojitos & Coolers",
+                    "Desserts"
+                ],
+                
+                menuData: {
+                    "Thamarai Special Dosai": [
+                        { name: "Palak Dosai", price: 190, description: "Crispy dosai smeared with fresh spinach puree.", isSpecial: true, isJain: true },
+                        { name: "Chettinad Dosai", price: 220, description: "Layered with special Chettinad masala from Tamil Nadu.", spicy: true },
+                        { name: "Garlic Pepper Dosai", price: 260, description: "Prepared with desi ghee, flavored with garlic & black pepper.", spicy: true },
+                        { name: "Veg Chinese Dosai", price: 250, description: "Fusion blend with veggie-packed spring roll style filling.", isJain: true },
+                        { name: "Manina Maga", price: 260, description: "Crisp yet soft, smeared with Karnataka byadagi chilli and groundnut chutney.", isSpecial: true, spicy: true },
+                        { name: "Byadagi Benne Dosai", price: 250, description: "Thick & fluffy dosai layered with hot byadagi chilli chutney and white butter.", isSpecial: true },
+                        { name: "Open Dosa", price: 220, description: "Crispy unfolded dosai topped with potato masala, podi, and white butter." },
+                        { name: "Davangere Benne Dosai", price: 250, description: "Thick & fluffy dosai smeared with tangy & spicy podi masala, and white butter.", spicy: true }
+                    ],
+                    "Classic Dosai": [
+                        { name: "Plain Dosai", price: 150, isJain: true },
+                        { name: "Mysore Plain Dosai", price: 190 },
+                        { name: "Butter/Ghee Plain Dosai", price: 190, isJain: true },
+                        { name: "Ghee Podi Plain Dosai", price: 199, isJain: true },
+                        { name: "Masala Dosai", price: 180 },
+                        { name: "Onion Masala Dosai", price: 190 },
+                        { name: "Mysore Masala Dosai", price: 220, isSpecial: true },
+                        { name: "Butter/Ghee Roast Masala Dosai", price: 220 },
+                        { name: "Paneer Dosai", price: 250, isJain: true },
+                        { name: "Paneer Makhani Dosai", price: 250 }
+                    ],
+                    "Rava Dosai": [
+                        { name: "Rava Plain Dosai", price: 180, isJain: true },
+                        { name: "Rava Onion Plain Dosai", price: 190 },
+                        { name: "Rava Masala Dosai", price: 210 },
+                        { name: "Rava Onion Masala Dosai", price: 210 },
+                        { name: "Rava Mysore Masala Dosai", price: 240, isSpecial: true },
+                        { name: "Rava Paneer Dosai", price: 270, isJain: true }
+                    ],
+                    "Thindi Breakfast": [
+                        { name: "Thatte Idli (with Podi Masala & White Butter)", price: 129, isSpecial: true, isJain: true },
+                        { name: "Rasam (Served with Apalam)", price: 125, isJain: true },
+                        { name: "Rice Idli", price: 130, isJain: true },
+                        { name: "Rava Idli", price: 150, isJain: true },
+                        { name: "Button Idli", price: 170, isJain: true },
+                        { name: "Masala Idli (Podi / Nalla-karam)", price: 190, spicy: true },
+                        { name: "Dahi Idli Chaat", price: 110, isJain: true },
+                        { name: "Idli Fries", price: 190 },
+                        { name: "Medu Vada", price: 150, isJain: true },
+                        { name: "Dahi Vada", price: 110, isJain: true },
+                        { name: "Paniyaram", price: 150, isJain: true },
+                        { name: "Upma", price: 150 },
+                        { name: "Apalam", price: 60, isJain: true }
+                    ],
+                    "Saadham Rice Specialties": [
+                        { name: "Curd Rice", price: 140, isJain: true },
+                        { name: "Sambhar Rice", price: 140 },
+                        { name: "Lemon Rice", price: 190, isJain: true },
+                        { name: "Tomato Rice", price: 190 },
+                        { name: "Puliyogare Rice", price: 190 },
+                        { name: "Bisi Bele Bhath", price: 190, isSpecial: true }
+                    ],
+                    "Meals & Combo Thaals": [
+                        { name: "Mini Thamarai Meal", price: 245, description: "Masala Dosa / Uttapam + Idli + Vada + Kesari Bhath", isSpecial: true },
+                        { name: "Dakshin Thamarai Meal", price: 295, description: "Sambhar + 2 Veg + 4 Poories + Rice + Rasam/Buttermilk + Apalam + Curd + Sweet" },
+                        { name: "Chole Bhature Combo", price: 175, description: "Served with rich Buttermilk or classic Lassi." },
+                        { name: "Amritsari Aloo Kulcha Combo", price: 195, description: "Served with Chole + Buttermilk/Lassi + Raita + Sweet + Chutney" },
+                        { name: "Amritsari Paneer Kulcha Combo", price: 245, description: "Served with Chole + Buttermilk/Lassi + Raita + Sweet + Chutney", isJain: true },
+                        { name: "Thamarai Tiffin", price: 295, description: "Paneer Gravy + Dal + 2 Tandoori Roti + Jeera Rice + Papad + Salad" },
+                        { name: "Thamarai Special Thaal", price: 375, description: "Paneer Gravy + Dal + Dry Veg + Any 2 Tandoori Breads + Veg Pulao + Papad + Salad + Sweet", isSpecial: true },
+                        { name: "Jain Thaal (NO ONION NO GARLIC)", price: 375, description: "Paneer Gravy + Dal + Dry Vegetable + Any 2 Tandoori Breads + Veg Pulao + Papad + Salad + Sweet", isJain: true }
+                    ],
+                    "Soups & Starters": [
+                        { name: "Tomato Cream Soup", price: 190, isJain: true },
+                        { name: "Sweet Corn Soup", price: 190, isJain: true },
+                        { name: "Cream of Mushroom", price: 190 },
+                        { name: "Lemon Coriander Soup", price: 190, isJain: true },
+                        { name: "Manchow Soup", price: 190, description: "Served with crispy noodles." },
+                        { name: "Hot And Sour Soup", price: 190, spicy: true },
+                        { name: "Hara Bhara Kebab", price: 275 },
+                        { name: "Dahi Kebab", price: 275, isSpecial: true },
+                        { name: "Tandoori Aloo", price: 275 },
+                        { name: "Mushroom Tikka", price: 275 },
+                        { name: "Paneer Tikka", price: 295, isJain: true, isSpecial: true },
+                        { name: "Malai Soya Chaap", price: 275 },
+                        { name: "Tandoori Soya Chaap", price: 275 },
+                        { name: "Tandoori Momos", price: 275 },
+                        { name: "Tandoori Platter", price: 395, isSpecial: true }
+                    ],
+                    "North Indian Mains": [
+                        { name: "Dal Tadka", price: 275 },
+                        { name: "Dal Makhani", price: 295, isJain: true, isSpecial: true },
+                        { name: "Aloo Jeera", price: 275, isJain: true },
+                        { name: "Aloo Gobhi", price: 295 },
+                        { name: "Veg Humjoli", price: 295 },
+                        { name: "Pindi Chana", price: 295 },
+                        { name: "Punjabi Paneer Bhurji", price: 345 },
+                        { name: "Darbari Paneer", price: 345 },
+                        { name: "Paneer Makhani Masala", price: 345, isJain: true },
+                        { name: "Paneer Matar", price: 345 },
+                        { name: "Paneer Lababdar", price: 345 },
+                        { name: "Palak Paneer", price: 345 },
+                        { name: "Kadhai Paneer", price: 345, spicy: true },
+                        { name: "Paneer Taka-Tak", price: 345 },
+                        { name: "Masaledar Tikka Paneer", price: 345, spicy: true },
+                        { name: "Handi Paneer", price: 345 },
+                        { name: "Mushroom Tikka Masala", price: 325 },
+                        { name: "Tangy Mushroom Masala", price: 325 },
+                        { name: "Hariyali Kofta", price: 325 },
+                        { name: "Malai Kofta", price: 325 },
+                        { name: "Delhi Style Chole", price: 275 },
+                        { name: "Dum Aloo Banarasi", price: 325 },
+                        { name: "Butter Masala Chaap", price: 325 }
+                    ],
+                    "Indian Flatbreads & Sides": [
+                        { name: "Plain Roti", price: 40 },
+                        { name: "Butter Roti", price: 55 },
+                        { name: "Missi Roti", price: 60 },
+                        { name: "Plain Naan", price: 80 },
+                        { name: "Butter Naan", price: 95 },
+                        { name: "Garlic Naan", price: 120 },
+                        { name: "Stuffed Naan Aloo / Paneer", price: 120 },
+                        { name: "Lehsuni Mirch Paratha", price: 120, spicy: true },
+                        { name: "Lachcha Paratha", price: 95 },
+                        { name: "Kulcha Aloo / Paneer", price: 120 },
+                        { name: "Steamed Rice", price: 190, isJain: true },
+                        { name: "Jeera Rice", price: 210, isJain: true },
+                        { name: "Vegetable Pulao", price: 240, isJain: true },
+                        { name: "Veg Dum Biryani", price: 295, isSpecial: true },
+                        { name: "Plain Papad", price: 60, isJain: true },
+                        { name: "Masala Papad", price: 95 },
+                        { name: "Salad (Assorted)", price: 145, isJain: true },
+                        { name: "Mix Veg Raita", price: 175 },
+                        { name: "Boondi Raita", price: 195 }
+                    ],
+                    "Chinese Appetizers": [
+                        { name: "French Fries (Salted/Peri-Peri)", price: 190 },
+                        { name: "Spring Rolls", price: 260 },
+                        { name: "Crispy Chilli Potatoes", price: 290, spicy: true },
+                        { name: "Chilli Momos", price: 290 },
+                        { name: "Cheese Cigar Rolls", price: 340, isSpecial: true },
+                        { name: "Crispy American Corn", price: 340, isJain: true },
+                        { name: "Crispy Chilli Baby Corn", price: 340 },
+                        { name: "Crispy Chilli Mushroom", price: 340 },
+                        { name: "Chinese Sizzler", price: 375, isSpecial: true },
+                        { name: "Manchurian (Dry/Gravy)", price: 340 },
+                        { name: "Wok-tossed Chilli Paneer", price: 350 },
+                        { name: "Thamarai Garlic Paneer", price: 350, spicy: true }
+                    ],
+                    "Chinese Noodles & Rice": [
+                        { name: "Fresh Veg Noodles", price: 320 },
+                        { name: "Wok-tossed Hakka Noodles", price: 320 },
+                        { name: "Schezwan Noodles", price: 350, spicy: true },
+                        { name: "Chilli Garlic Noodles", price: 350 },
+                        { name: "Burnt Garlic Noodles", price: 360 },
+                        { name: "Wok-tossed Fried Rice", price: 320 },
+                        { name: "Schezwan Fried Rice", price: 340, spicy: true },
+                        { name: "Chilli Garlic Fried Rice", price: 340 },
+                        { name: "Burnt Garlic Fried Rice", price: 350 }
+                    ],
+                    "Tea, Coffee & Shakes": [
+                        { name: "Filter Coffee", price: 79, isSpecial: true },
+                        { name: "Tea (Adrak & Elaichi / Masala)", price: 79 },
+                        { name: "Bitter Black Filter Coffee", price: 110 },
+                        { name: "Home Style Coffee", price: 125 },
+                        { name: "Cold Coffee", price: 175 },
+                        { name: "Oreo & Chocolate Shake", price: 195 },
+                        { name: "Fudge Brownie Shake", price: 195, isSpecial: true },
+                        { name: "Vanilla & Banana Shake", price: 195 },
+                        { name: "Strawberry Shake", price: 195 },
+                        { name: "Summer Mango Shake", price: 195 }
+                    ],
+                    "Ice Teas, Mojitos & Coolers": [
+                        { name: "Elderflower Ice Tea", price: 160 },
+                        { name: "Peach Ice Tea", price: 160 },
+                        { name: "Green Apple Ice Tea", price: 160 },
+                        { name: "Lime & Mint Mojito", price: 160, isSpecial: true },
+                        { name: "Garden Fresh Soda", price: 125 },
+                        { name: "Southern Kokkam Soda", price: 195, isSpecial: true },
+                        { name: "Pomegranate Lagoon", price: 195 },
+                        { name: "Fresh Coconut Water", price: 95 },
+                        { name: "Spiced Buttermilk", price: 69 },
+                        { name: "Lassi (Mango/Gulab)", price: 125 },
+                        { name: "Aerated Drinks", price: 95 }
+                    ],
+                    "Desserts": [
+                        { name: "Kesari Bhath", price: 95, isSpecial: true },
+                        { name: "Mysore Pak", price: 120 },
+                        { name: "Gulab Jamun", price: 120 },
+                        { name: "Kesariya Kheer", price: 140 },
+                        { name: "Kulfi", price: 140 },
+                        { name: "Ice Cream Selection", price: 120 },
+                        { name: "Brownie with Hot Chocolate", price: 125 },
+                        { name: "Tutti Frutti Sundae", price: 195 },
+                        { name: "Nutty Brownie Sundae", price: 195, isSpecial: true }
+                    ]
+                },
+
+
+                filteredCategories() {
+                    return this.categories.filter(cat => {
+                        return this.menuData[cat] && this.menuData[cat].some(item => this.shouldShowItem(item));
+                    });
+                },
+
+
+                shouldShowItem(item) {
+                    if (this.onlySpecials && !item.isSpecial) return false;
+                    if (this.onlyJain && !item.isJain) return false;
+                    return true;
+                },
+
+
+                toggleSpecialFilter() { 
+                    this.onlySpecials = !this.onlySpecials;
+                    this.activeIndex = 0;
+                    this.playTickSound(210, 0.05);
+                },
+                
+                toggleJainFilter() { 
+                    this.onlyJain = !this.onlyJain;
+                    this.activeIndex = 0;
+                    this.playTickSound(190, 0.05);
+                },
+
+
+                getCardStyle(index) {
+                    const diff = index - this.activeIndex;
+                    if (diff < 0) {
+                        return 'transform: translateX(-150%) rotateY(-60deg) scale(0.85); opacity: 0; pointer-events: none;';
+                    }
+                    if (diff === 0) {
+                        return 'transform: translateZ(0px) translateY(0px) rotateX(0deg); opacity: 1; z-index: 30;';
+                    }
+                    if (diff === 1) {
+                        return 'transform: translateZ(-80px) translateY(16px) scale(0.92); opacity: 0.75; z-index: 20; filter: blur(1px); pointer-events: none;';
+                    }
+                    if (diff === 2) {
+                        return 'transform: translateZ(-160px) translateY(32px) scale(0.84); opacity: 0.35; z-index: 10; filter: blur(2.5px); pointer-events: none;';
+                    }
+                    return 'opacity: 0; pointer-events: none;';
+                },
+
+
+                playTickSound(frequency = 200, volume = 0.08) {
+                    try {
+                        if (!this.audioCtx) {
+                            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        }
+                        const osc = this.audioCtx.createOscillator();
+                        const gainNode = this.audioCtx.createGain();
+                        
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(frequency, this.audioCtx.currentTime);
+                        
+                        gainNode.gain.setValueAtTime(volume, this.audioCtx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + 0.08);
+                        
+                        osc.connect(gainNode);
+                        gainNode.connect(this.audioCtx.destination);
+                        
+                        osc.start();
+                        osc.stop(this.audioCtx.currentTime + 0.08);
+                    } catch (e) {
+                        console.log("Audio contexts locked until structural onboarding interaction.");
+                    }
+                },
+
+
+                unlockSpatialMenu() {
+                    this.showQrScreen = false;
+                    this.playTickSound(300, 0.1);
+                },
+
+
+                nextCard() {
+                    if (this.activeIndex < this.filteredCategories().length - 1) {
+                        this.activeIndex++;
+                        this.playTickSound(180, 0.08);
+                    }
+                },
+
+
+                previousCard() {
+                    if (this.activeIndex > 0) {
+                        this.activeIndex--;
+                        this.playTickSound(240, 0.06);
+                    }
+                },
+
+
+                inspectItem(item) {
+                    this.selectedItem = item;
+                    this.showXray = true;
+                    this.playTickSound(400, 0.05);
+                },
+
+
+                triggerMagicCurator() {
+                    let options = [
+                        [
+                            { category: 'Starter Track', name: 'Paneer Tikka', price: 295 },
+                            { category: 'Main Deck', name: 'Thamarai Special Thaal', price: 375 }
+                        ],
+                        [
+                            { category: 'Signature Build', name: 'Byadagi Benne Dosai', price: 250 },
+                            { category: 'Breakfast Side', name: 'Thatte Idli', price: 129 }
+                        ],
+                        [
+                            { category: 'Deluxe Fusion', name: 'Chinese Sizzler', price: 375 },
+                            { category: 'Signature Brew', name: 'Filter Coffee', price: 79 }
+                        ],
+                        [
+                            { category: 'Comfort Build', name: 'Dal Makhani', price: 295 },
+                            { category: 'Rice Track', name: 'Jeera Rice', price: 210 }
+                        ]
+                    ];
+                    this.matchingRecommendation = options[Math.floor(Math.random() * options.length)];
+                    this.showCuratorModal = true;
+                    this.playTickSound(320, 0.07);
+                },
+
+
+                handleTouchStart(e) {
+                    this.touchStartX = e.changedTouches[0].screenX;
+                    this.touchStartY = e.changedTouches[0].screenY;
+                },
+
+
+                handleTouchEnd(e, index) {
+                    const diffX = e.changedTouches[0].screenX - this.touchStartX;
+                    const diffY = e.changedTouches[0].screenY - this.touchStartY;
+                    
+                    if (diffX < -60 || diffY < -60) {
+                        this.nextCard();
+                    } else if (diffX > 60 || diffY > 60) {
+                        this.previousCard();
+                    }
+                },
+
+
+                init() {
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: window.location.href,
+                        width: 130,
+                        height: 130,
+                        colorDark: "#0F2013",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
