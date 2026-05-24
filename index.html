@@ -63,7 +63,7 @@
     </div>
 
 
-    <div x-show="showQrScreen" class="absolute inset-0 bg-forest-950 z-50 flex flex-col items-center justify-center p-6 overflow-y-auto">
+    <div x-show="currentView === 'home'" class="absolute inset-0 bg-forest-950 z-50 flex flex-col items-center justify-center p-6 overflow-y-auto">
         <div class="max-w-sm w-full text-center space-y-6 my-auto py-4">
             <div class="space-y-2">
                 <h1 class="font-serif text-3xl tracking-[0.25em] text-gold uppercase">THAMARAI</h1>
@@ -89,14 +89,14 @@
             </div>
 
 
-            <button @click="unlockSpatialMenu()" class="w-full bg-gradient-to-r from-gold-dark via-gold to-gold-light text-forest-950 py-4 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-2xl transition-all duration-300 transform active:scale-95">
+            <button @click="navigateToMenu()" class="w-full bg-gradient-to-r from-gold-dark via-gold to-gold-light text-forest-950 py-4 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-2xl transition-all duration-300 transform active:scale-95">
                 Initialize Spatial Matrix
             </button>
         </div>
     </div>
 
 
-    <div x-show="!showQrScreen" x-cloak class="absolute inset-0 z-10 flex flex-col justify-between p-4 pb-20 md:p-6 opacity-0 transition-opacity duration-1000" x-init="setTimeout(() => $el.classList.add('opacity-100'), 100)">
+    <div x-show="currentView === 'menu'" x-cloak class="absolute inset-0 z-10 flex flex-col justify-between p-4 pb-20 md:p-6 opacity-0 transition-opacity duration-1000" :class="currentView === 'menu' ? 'opacity-100' : ''">
         
         <header class="text-center pt-1 pointer-events-auto space-y-1 shrink-0">
             <div class="inline-flex items-center gap-2 border border-gold/20 px-3 py-0.5 rounded-full text-[9px] tracking-[0.15em] text-gold uppercase bg-forest-900/50">
@@ -104,7 +104,7 @@
                 <span class="w-1 h-1 rounded-full bg-gold/50"></span>
                 <span>08:00 AM - 11:00 PM</span>
             </div>
-            <h2 class="font-serif text-2xl tracking-[0.25em] text-gold uppercase">THAMARAI</h2>
+            <h2 class="font-serif text-2xl tracking-[0.25em] text-gold uppercase cursor-pointer" @click="navigateToHome()">THAMARAI</h2>
             
             <div class="flex justify-center gap-1.5 pt-2 max-w-xs mx-auto">
                 <template x-for="(cat, index) in filteredCategories()">
@@ -233,15 +233,12 @@
                         <p class="font-serif text-sm text-stone-300" x-text="'Standard Pricing • ₹' + selectedItem.price"></p>
                     </div>
 
-
                     <div class="h-[1px] w-full bg-gold/10"></div>
-
 
                     <div class="space-y-1.5">
                         <h4 class="text-[9px] uppercase tracking-widest text-gold font-bold">Gastronomy Breakdown</h4>
                         <p class="text-xs text-stone-300 leading-relaxed font-light" x-text="selectedItem.description || 'Artisanal culinary blend configured fresh on authentic multi-generational premium ranges.'"></p>
                     </div>
-
 
                     <div class="grid grid-cols-2 gap-2.5 pt-1">
                         <div class="bg-white/[0.02] border border-white/[0.05] p-2 rounded-xl text-center">
@@ -278,7 +275,6 @@
                     </template>
                 </div>
 
-
                 <div class="flex gap-2.5">
                     <button @click="triggerMagicCurator()" class="flex-1 border border-gold/30 text-stone-300 py-2 rounded-xl text-xs uppercase tracking-wider font-medium hover:bg-forest-900 transition">Reroll Build</button>
                     <button @click="showCuratorModal = false" class="flex-1 bg-gold text-forest-950 py-2 rounded-xl text-xs uppercase tracking-widest font-bold transition hover:brightness-110">Accept Deck</button>
@@ -293,7 +289,7 @@
     <script>
         function combinedMenuApp() {
             return {
-                showQrScreen: true,
+                currentView: 'home',
                 activeIndex: 0,
                 onlySpecials: false,
                 onlyJain: false,
@@ -579,14 +575,17 @@
                         osc.start();
                         osc.stop(this.audioCtx.currentTime + 0.08);
                     } catch (e) {
-                        console.log("Audio contexts locked until structural onboarding interaction.");
+                        console.log("Audio unlocked via structural onboarding interaction.");
                     }
                 },
 
 
-                unlockSpatialMenu() {
-                    this.showQrScreen = false;
-                    this.playTickSound(300, 0.1);
+                navigateToMenu() {
+                    window.location.hash = 'menu';
+                },
+
+                navigateToHome() {
+                    window.location.hash = '';
                 },
 
 
@@ -656,9 +655,22 @@
                 },
 
 
+                checkHashRoute() {
+                    if (window.location.hash === '#menu') {
+                        this.currentView = 'menu';
+                    } else {
+                        this.currentView = 'home';
+                    }
+                },
+
+
                 init() {
+                    this.checkHashRoute();
+                    window.addEventListener('hashchange', () => this.checkHashRoute());
+
+                    let menuUrl = window.location.origin + window.location.pathname + "#menu";
                     new QRCode(document.getElementById("qrcode"), {
-                        text: window.location.href,
+                        text: menuUrl,
                         width: 130,
                         height: 130,
                         colorDark: "#0F2013",
