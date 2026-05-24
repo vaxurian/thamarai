@@ -25,7 +25,7 @@
     </script>
     <style>
         [x-cloak] { display: none !important; }
-        body, html { overflow: hidden; height: 100%; position: relative; background-color: #0F2013; -webkit-tap-highlight-color: transparent; }
+        body, html { overflow: hidden; height: 100%; height: 100dvh; position: relative; background-color: #0F2013; -webkit-tap-highlight-color: transparent; }
         
         .perspective-container {
             perspective: 1400px;
@@ -34,16 +34,25 @@
         
         .spatial-card {
             transform-style: preserve-3d;
-            transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, filter 0.5s ease;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, filter 0.5s ease;
             backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            will-change: transform, opacity;
         }
 
         .glass-luxury {
-            background: linear-gradient(135deg, rgba(30, 58, 36, 0.8) 0%, rgba(15, 32, 19, 0.95) 100%);
-            backdrop-filter: blur(35px);
-            -webkit-backdrop-filter: blur(35px);
+            background: linear-gradient(135deg, rgba(30, 58, 36, 0.85) 0%, rgba(15, 32, 19, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(212, 175, 55, 0.25);
-            box-shadow: 0 40px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        @media (min-width: 768px) {
+            .glass-luxury {
+                backdrop-filter: blur(35px);
+                -webkit-backdrop-filter: blur(35px);
+            }
         }
 
         .glow-gold { box-shadow: 0 0 30px rgba(212, 175, 55, 0.15); }
@@ -60,10 +69,10 @@
         <div class="absolute bottom-10 -right-40 w-96 h-96 bg-forest-800/20 rounded-full blur-[150px]"></div>
     </div>
 
-    <div x-show="currentView === 'home'" class="absolute inset-0 bg-forest-950 z-50 flex flex-col items-center justify-center p-6 overflow-y-auto">
+    <div x-show="currentView === 'home'" class="absolute inset-0 bg-forest-950 z-50 flex flex-col items-center justify-center p-4 overflow-y-auto">
         <div class="max-w-sm w-full text-center space-y-6 my-auto py-4">
             <div class="space-y-2">
-                <h1 class="font-serif text-3xl tracking-[0.25em] text-gold uppercase">THAMARAI</h1>
+                <h1 class="font-serif text-3xl md:text-4xl tracking-[0.25em] text-gold uppercase">THAMARAI</h1>
                 <p class="text-xs text-gold/60 tracking-widest font-serif">|| थमराई • ||</p>
                 <div class="h-[1px] w-24 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto"></div>
             </div>
@@ -94,7 +103,7 @@
         </div>
     </div>
 
-    <div x-show="currentView === 'menu'" x-cloak class="absolute inset-0 z-10 flex flex-col justify-between p-4 pb-20 md:p-6 opacity-0 transition-opacity duration-1000" :class="currentView === 'menu' ? 'opacity-100' : ''">
+    <div x-show="currentView === 'menu'" x-cloak class="absolute inset-0 z-10 flex flex-col justify-between p-4 pb-20 md:p-6 opacity-0 transition-opacity duration-500" :class="currentView === 'menu' ? 'opacity-100' : ''">
         
         <header class="text-center pt-1 pointer-events-auto space-y-1 shrink-0">
             <div class="inline-flex items-center gap-2 border border-gold/20 px-3 py-0.5 rounded-full text-[9px] tracking-[0.15em] text-gold uppercase bg-forest-900/50">
@@ -102,11 +111,11 @@
                 <span class="w-1 h-1 rounded-full bg-gold/50"></span>
                 <span>08:00 AM - 11:00 PM</span>
             </div>
-            <h2 class="font-serif text-2xl tracking-[0.25em] text-gold uppercase cursor-pointer" @click="navigateToHome()">THAMARAI</h2>
+            <h2 class="font-serif text-2xl md:text-3xl tracking-[0.25em] text-gold uppercase cursor-pointer" @click="navigateToHome()">THAMARAI</h2>
             
             <div class="flex justify-center gap-1.5 pt-2 max-w-xs mx-auto">
                 <template x-for="(cat, index) in filteredCategories()">
-                    <div class="h-1 rounded-full transition-all duration-500" :class="activeIndex === index ? 'w-6 bg-gold' : 'w-1.5 bg-stone-700/60'"></div>
+                    <div class="h-1 rounded-full transition-all duration-300" :class="activeIndex === index ? 'w-6 bg-gold' : 'w-1.5 bg-stone-700/60'"></div>
                 </template>
             </div>
         </header>
@@ -123,7 +132,7 @@
             </button>
         </div>
 
-        <main class="relative w-full h-[55vh] min-h-[380px] flex items-center justify-center perspective-container my-auto">
+        <main class="relative w-full h-[52vh] min-h-[360px] md:h-[58vh] flex items-center justify-center perspective-container my-auto">
             <template x-for="(cat, index) in filteredCategories()" :key="cat">
                 <div x-show="index >= activeIndex && index <= activeIndex + 2"
                      class="absolute w-full max-w-[350px] h-[98%] spatial-card glass-luxury rounded-[2.5rem] p-4 flex flex-col justify-between"
@@ -143,7 +152,7 @@
                         <template x-for="item in menuData[cat]" :key="item.name">
                             <div x-show="shouldShowItem(item)" @click="inspectItem(item)" 
                                  :class="item.isSpecial ? 'border-gold/40 bg-gold/5' : 'border-white/[0.05] bg-white/[0.02]'"
-                                 class="p-2.5 rounded-xl border hover:border-gold/40 active:bg-gold/5 transition-all duration-300 flex justify-between items-center cursor-pointer group">
+                                 class="p-2.5 rounded-xl border hover:border-gold/40 active:bg-gold/5 transition-all duration-200 flex justify-between items-center cursor-pointer group">
                                 <div class="space-y-0.5 max-w-[74%]">
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         <span class="w-1.5 h-1.5 rounded-full" :class="item.spicy ? 'bg-amber-500' : 'bg-emerald-500'"></span>
@@ -157,7 +166,7 @@
                                 <span class="font-serif text-[11px] font-semibold text-gold bg-gold/10 px-2 py-0.5 rounded-lg border border-gold/20 shrink-0" x-text="'₹' + item.price"></span>
                             </div>
                         </template>
-                
+
                         <div x-show="menuData[cat].filter(i => shouldShowItem(i)).length === 0" class="h-full flex flex-col items-center justify-center text-center p-4">
                             <p class="text-xs text-stone-500 italic">No selection match within current pipeline filters.</p>
                         </div>
@@ -198,8 +207,8 @@
         </div>
 
         <div class="fixed inset-0 bg-black/80 z-50 flex items-end justify-center backdrop-blur-xl" 
-             x-show="showXray" x-cloak x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-y-full" x-transition:leave="transition ease-in duration-300" x-transition:leave-end="opacity-0 translate-y-full">
-            <div class="w-full p-6 space-y-4 max-w-md relative pb-8 flex flex-col justify-end">
+             x-show="showXray" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-full" x-transition:leave="transition ease-in duration-250" x-transition:leave-end="opacity-0 translate-y-full">
+            <div class="w-full p-4 md:p-6 space-y-4 max-w-md relative pb-8 flex flex-col justify-end max-h-[90vh] overflow-y-auto no-scrollbar">
                 <button @click="showXray = false; playTickSound(150, 0.05)" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-stone-400 text-xs z-50">✕</button>
                 
                 <div class="w-full aspect-[16/9] rounded-[2rem] border border-gold/40 overflow-hidden shadow-2xl glass-luxury shrink-0">
@@ -621,10 +630,18 @@
                     const diffX = e.changedTouches[0].screenX - this.touchStartX;
                     const diffY = e.changedTouches[0].screenY - this.touchStartY;
                     
-                    if (diffX < -60 || diffY < -60) {
-                        this.nextCard();
-                    } else if (diffX > 60 || diffY > 60) {
-                        this.previousCard();
+                    if (Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX < -50) {
+                            this.nextCard();
+                        } else if (diffX > 50) {
+                            this.previousCard();
+                        }
+                    } else {
+                        if (diffY < -60) {
+                            this.nextCard();
+                        } else if (diffY > 60) {
+                            this.previousCard();
+                        }
                     }
                 },
 
